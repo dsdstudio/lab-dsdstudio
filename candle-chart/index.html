@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>캔들 차트 프로토타이핑</title>
+</head>
+<style>
+	* { border:0; margin:0;-webkit-user-select: none; }
+	body { overflow-x:hidden; font-size:12px;}
+	a, a:hover, a:link { text-decoration:none; }
+</style>
+<script src="http://projectbs.github.io/bsJS/bs/bsjs.js"></script>
+<body>
+
+<script src="http://code.jquery.com/jquery-1.10.2.min.js" charset="utf-8"></script>
+<script src="chart.js" charset="utf-8"></script>
+<script>
+$(function() {
+	var M,V,C;
+	function log($msg) { bs.Dom("#logger").$("html",$msg); }
+	M = {
+		data:undefined,
+		start:0,
+		end:0,
+		maxlen:50,
+		seek:function(v){
+			this.start += v,
+		    this.end += v;
+		},
+		// MACD 계산
+		preprocess:function(list) {
+			var i, o;
+			function avg(idx, avgDay) {
+				var i,sum,o,k;
+				i = avgDay, sum = 0;
+				k = "close_avg" + avgDay;
+				while(i--) {
+					if (!(o = list[idx-i])) return;
+					sum += o["close"];
+				}
+				list[idx][k] = sum / avgDay;
+			}
+			i = list.length;
+			while(i--) {
+				o = list[i];
+				avg(i, 5), avg(i, 20), avg(i, 60);
+			}
+		},
+		urltable : { 
+			m:"m.json", 
+			w:"f.json",
+			d:"f.json" 
+		},
+		requestData:function(type) {
+			var self = this;
+			var url = self.urltable[type];
+			if (!url) throw {message:"unsupported type " + type};
+
+			$.getJSON(url).done(function(d){
+				var len;
+				var data = d;
+				len = d.collections.length;
+				// self.preprocess(data.collections);
+				self.maxlen = len > 10 ? 50 : 10; 
+				self.start = len - (self.maxlen > len ? 0 : self.maxlen) ;
+				self.end = len;
+				self.data = data;
+				V.render();
+			});
+		}
+	};
+	V = (function() {
+		var chart, pos, el, timer;
+		pos = {
+			longtouch:0,
+			time:{
+				from:0,
+				elapsed:0,
+				process:function(){
+					this.elapsed = Date.now() - this.from;
+				}
+			},
+			move: function(x, y) { 
+				this.ended.x = x, this.ended.y = y;
+				this.moved.x = this.started.x - x, this.moved.y = this.started.y - y; 
+			},
+			prepare:function($x, $y) {
+				this.moved.x = 0, this.moved.y = 0;
+				this.started.x = $x, this.started.y = $y;
+				this.time.from = Date.now();
+			},
+			started:{ x:0, y:0 },
+			moved:{ x:0, y:0 },
+			ended:{ x:0,y:0 }
+		};
+		function template() {
+			var $body, w, h;
+			$body = $("body"),
+			w = document.documentElement.clientWidth || document.body.clientWidth,
+			h = document.documentElement.clientHeight || document.body.clientHeight;
+			$body.append(
+				$([
+					"<div class='navbar'>",
+						"<ul>",
+							"<li>",
+								"<a href='#' id='d'>일</a>",
+							"</li>",
+							"<li>",
+								"<a href='#' id='m'>월</a>",
+							"</li>",
+						"</ul>",
+					"</div>",
+					"<canvas id='stage' width='" + (w-20) +"' height='" + (h - 44 - 17) + "' >",
+					"</canvas>"
+				].join(""))
+			);
+		}
+		return {
+			init:function(elId) {
+				template();
+				el = $("#" + elId).get(0);
+				chart = new StockChart(el);
+				chart.prepare(el.getAttribute("width"), el.getAttribute("height"));
+				console.log("chart initialized");
+			},
+			render:function() { 
+				chart.render(M.data,M.start,M.end,M.maxlen); 
+			},
+			setEvents:function () {
+				var self = this;
+				function s(e) {
+					var pageX = e.pageX || e.touches[0].pageX, pageY = e.pageY || e.touches[0].pageY;
+					pos.prepare(pageX, pageY);
+					console.log("timer",timer, pos.longtouch);
+					if ( timer ) timer = 0,clearInterval(timer);
+					timer = setInterval(function() {
+						if ( pos.ended.x || pos.ended.y ) {
+							clearInterval(timer);
+							timer = 0;
+							pos.longtouch = 0;
+						} else {
+							pos.time.process();
+							if ( pos.time.elapsed > 1000 ) {
+								clearInterval(timer);
+								timer = 0;
+								pos.longtouch = 1;
+								chart.render(M.data,M.start,M.end,M.maxlen, pos.started.x, pos.started.y); 
+								console.log('longtouch');
+							}
+							console.log('observing...');
+						}
+					}, 20);
+					log("touchstart " + pos.started.x + " " + pos.started.y);
+				}
+				function m(e) {
+					var dv,ds,de,pageX,pageY,limit,size;
+					e.preventDefault();
+					limit = Math.round(chart.rectInfo.half), size = Math.round(chart.rectInfo.fullwidth);
+					pageX = e.pageX || e.changedTouches[0].pageX, pageY = e.pageY || e.changedTouches[0].pageY;
+					pos.move(pageX, pageY);
+					// 좌표 상세보기모드일때 
+					if ( pos.longtouch ) {
+						chart.render(M.data, M.start, M.end, M.maxlen, pageX, pageY); 
+						console.log("longtouch render");
+						return;
+					}
+					// drag mode 일때 
+					if ( Math.abs(pos.moved.x) < limit ) return;
+					if ( (dv = Math.round(pos.moved.x/size), ds = M.start + dv, ds) < 0 ||
+						 (de = M.end + dv, de) > M.data.collections.length ) return;
+					pos.started.x = pageX, pos.started.y = pageY;
+
+					C.seek(dv);
+					log("move dv:" + dv + " start:" + M.start + " end:" + M.end);
+				}
+				function r(e) { 
+					var w,h,ratio;
+					ratio = chart.getDeviceRatio();
+					w = document.documentElement.clientWidth || document.body.clientWidth;
+					h = document.documentElement.clientHeight || document.body.clientHeight;
+					h = h - (17 * ratio);
+					chart.prepare(w - (20 * ratio), h - (17 * ratio));
+					self.render();
+					log(w + " " + h);
+					clearInterval(timer);
+					console.log("resized", w, h);
+				}
+
+				$("#d").on("click", function(e){ M.requestData("d"); });
+				$("#m").on("click", function(e){ M.requestData("m"); });
+				$("#w").on("click", function(e){ M.requestData("w"); });
+				el.addEventListener("touchstart", s, false);
+				el.addEventListener("touchend", function(e){
+					pos.ended.x = 0, pos.ended.y = 0;
+					clearTimeout(timer);
+					if ( pos.longtouch ) V.render();
+				}, false);
+				el.addEventListener("touchmove", m, false);
+				window.onresize = window.onorientationchange = r;
+			}
+		};
+	})();
+
+	C = { 
+		init:function(elid){
+			V.init(elid);
+			M.requestData("d");
+			V.setEvents();
+		},
+		seek:function(dv) {
+			M.seek(dv);
+			V.render();
+		}
+	};
+
+	C.init("stage");
+});
+</script>
+</body>
+</html>
