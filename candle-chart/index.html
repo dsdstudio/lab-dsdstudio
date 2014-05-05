@@ -18,7 +18,7 @@
 <script>
 $(function() {
 	var M,V,C;
-	function log($msg) { bs.Dom("#logger").$("html",$msg); }
+	function log($msg) { $("#logger").html($msg); }
 	M = {
 		data:undefined,
 		start:0,
@@ -141,6 +141,7 @@ $(function() {
 							pos.longtouch = 0;
 						} else {
 							pos.time.process();
+							// 1초이상 터치하고있으면 롱터치로 간주. 
 							if ( pos.time.elapsed > 1000 ) {
 								clearInterval(timer);
 								timer = 0;

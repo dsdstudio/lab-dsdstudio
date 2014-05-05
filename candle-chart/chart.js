@@ -51,7 +51,8 @@ function numberWithCommas(x) {
 function rangeLoop($start,$end, $fn) { for (;$start<$end;$start++) $fn($start); }
 
 /**
-* canvas +1px render bug 방지 
+* canvas +1px render bug 방지
+* 어느정도는 잡으나, 특정 케이스일때 아직까지 픽셀이 번져보이는 문제가 있음
 */
 function cadapt($n) { return Math.floor($n) + .5; }
 
@@ -168,12 +169,15 @@ function init() {
 		var volumeScaleRender = function(dm,min) {
 			var cy,hh,vv,v,txt;
 			min = min/1000, dm = dm/1000;
-			cy = h + 90;
+			cy = 0;
 			hh = 80 / 3;
 			vv = dm / 3;
 			v = min;
 			c.lineWidth=1;
-			r.line(conf.colortable.gline, w,h,w,h+90);
+			r.line(conf.colortable.gline, w, h, w, h + 90);
+			// 좌표계 이동
+			c.save();
+			c.translate(0, h + 90);
 			rangeLoop(0, 4, function(i) {
 				var x = w + 54;
 				txt = numberWithCommas(Math.round(v))
@@ -196,6 +200,7 @@ function init() {
 				c.restore();
 				cy -= hh, v += vv;
 			});
+			c.restore();
 		};
 
 		// 오늘 금액 그리기 
