@@ -13,7 +13,6 @@ function initGL(canvas) {
 	// webgl 초기화
 	gl=canvas.getContext("webgl")||canvas.getContext("experimental-webgl");
 	if (!gl) return alert("지원안되는 브라우저라능 !");
-	console.log(gl);
 	gl.viewportWidth = canvas.width, 
 	gl.viewportHeight = canvas.height;
 }
@@ -60,8 +59,8 @@ function getShader(gl, id) {
 var shaderProgram;
 function initShaders() {
 	// 컴퐈일된 shader객체를 얻어옴 
-	var fragmentShader=getShader(gl, "fragment");
-	var vertexShader=getShader(gl, "vertex");
+	var fragmentShader = getShader(gl, "fragment");
+	var vertexShader = getShader(gl, "vertex");
 
 	// 쉐이더를 사용하기위해 프로그램 만들기
 	shaderProgram=gl.createProgram();
@@ -94,8 +93,8 @@ function initShaders() {
 	gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
 }
 
-var mvMatrix=mat4.create();
-var pMatrix=mat4.create();
+var mvMatrix = mat4.create();
+var pMatrix = mat4.create();
 function setMatrixUniforms() {
 	gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
 	gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
@@ -138,6 +137,7 @@ function initBuffers() {
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 }
 
+var time = 0;
 function drawScene() {
 	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -146,14 +146,19 @@ function drawScene() {
 
 	// MBO 초기화 
 	mat4.identity(mvMatrix);
-	mat4.translate(mvMatrix, [0.0, 0.0, -7]);
+	mat4.translate(mvMatrix, [Math.sin(time) * 2, Math.cos(time) * 2, -10]);
+
+	time += 0.01
+	// 회전 
+	mat4.rotateY(mvMatrix, time)
+	mat4.rotateX(mvMatrix, time)
+	mat4.rotateZ(mvMatrix, time)
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
 	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, squareVerticesColorBuffer); 
 	gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
-	console.log(squareVerticesColorBuffer, shaderProgram.vertexColorAttribute);
 
 	setMatrixUniforms(); 
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
@@ -168,7 +173,7 @@ function glStart() {
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
 	gl.enable(gl.DEPTH_TEST);
-	drawScene();
+	setInterval(drawScene, 16);
 }
 
 </script>
