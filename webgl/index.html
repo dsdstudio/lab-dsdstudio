@@ -22,16 +22,20 @@ function getShader(gl, id) {
 	var shaderStr = {
 		"fragment":[
 			"precision mediump float;",
+			"varying lowp vec4 vColor;",
 			"void main(void) {",
-				"gl_FragColor = vec4(0.3, 1.0, 1.0, 1.0);",
+				"gl_FragColor = vColor;",
 			"}"
 		].join("\n"),
 		"vertex":[
 			"attribute vec3 aVertexPosition;",
+			"attribute vec4 aVertexColor;",
 			"uniform mat4 uMVMatrix;",
 			"uniform mat4 uPMatrix;",
+			"varying lowp vec4 vColor;",
 			"void main(void) {",
 				"gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);",
+				"vColor = aVertexColor;",
 			"}"
 		].join("\n")
 	}[id];
@@ -77,14 +81,17 @@ function initShaders() {
 	gl.useProgram(shaderProgram);
 
 	// 비디오 메모리(VRAM) 내의 attributePosition 을 얻어옵니다.
-	shaderProgram.vertexPositionAttribute=gl.getAttribLocation(shaderProgram, "aVertexPosition");
+	shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
 	
 	// 지퓨한데 담당할 버텍스 정보를 알려줍니다~
 	gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 	
 	// shader 에 상수 알려줌
-	shaderProgram.pMatrixUniform=gl.getUniformLocation(shaderProgram, "uPMatrix");
-	shaderProgram.mvMatrixUniform=gl.getUniformLocation(shaderProgram, "uMVMatrix");
+	shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+	shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+
+	shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
+	gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
 }
 
 var mvMatrix=mat4.create();
@@ -95,6 +102,7 @@ function setMatrixUniforms() {
 }
 
 var squareVertexPositionBuffer;
+var squareVerticesColorBuffer;
 function initBuffers() {
 	// GPU한테 버퍼만들어달라고 요청
 	squareVertexPositionBuffer = gl.createBuffer();
@@ -117,6 +125,17 @@ function initBuffers() {
 	squareVertexPositionBuffer.itemSize=3;
 	// 점(버텍스) 갯수는 4개라고 알려줌 
 	squareVertexPositionBuffer.numItems=4;
+
+	// 칼라 설정 
+	var colors = [ 
+		1.0, 1.0, 1.0, 1.0,
+		1.0, 0.0, 0.0, 1.0,
+		0.0, 1.0, 0.0, 1.0,
+		0.0, 0.0, 1.0, 1.0
+	];
+	squareVerticesColorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, squareVerticesColorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 }
 
 function drawScene() {
@@ -124,12 +143,18 @@ function drawScene() {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	
 	mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+
 	// MBO 초기화 
 	mat4.identity(mvMatrix);
 	mat4.translate(mvMatrix, [0.0, 0.0, -7]);
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
 	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, squareVerticesColorBuffer); 
+	gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+	console.log(squareVerticesColorBuffer, shaderProgram.vertexColorAttribute);
+
 	setMatrixUniforms(); 
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
 }
