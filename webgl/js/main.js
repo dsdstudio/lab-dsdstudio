@@ -1,9 +1,64 @@
-function initGL(canvas) {
-	// webgl 초기화
-	gl=canvas.getContext("webgl")||canvas.getContext("experimental-webgl");
+/**
+ * */
+var Camera, Stage, Display, Shape, Rect, fn;
+
+Display = function(){};
+Display.prototype = {
+	render : function(gl) {
+		this._render(gl);
+	},
+	_render : null
+};
+
+Camera = function Camera() { };
+Stage = function Stage () { 
+	var el = document.createElement("canvas");
+	el.setAttribute("width", 800);
+	el.setAttribute("height", 600);
+	document.body.appendChild(el);
+
+	this.gl = el.getContext("webgl") || el.getContext("experimental-webgl");
+	this.gl.w = this.width = el.width; 
+	this.gl.h = this.height = el.height;
+	this.viewRate = this.width / this.height;
+
+	this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	this.gl.enable(gl.DEPTH_TEST);
+
+	this.perspective = mat4.create();
+	mat4.perspective( 45, this.viewRate, 0.1, 100.0, this.perspective);
+
+	this.shaders = {};
+	this.children = [];
+};
+
+fn = Stage.prototype = new Display();
+fn._render = function() {
+	var gl = this.gl, i, j;
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	for ( i = 0, j = this.children.length; i < j ; i++ ) {
+		this.children[i].render(gl);
+	}
+};
+fn.shader = function (key, strShader){
+	var gl, shader;
+	var shaderConstant = { "fragment":gl.FRAGMENT_SHADER, "vertex":gl.VERTEX_SHADER }[key];
+	if (strShader) {
+		gl = this.gl;
+		shader = gl.createShader(shaderConstant);
+
+		gl.shaderSource(shader, shaderStr);
+		gl.compileShader(shader);
+		this.shaders[key] = shader;
+	}
+	return this.shaders[key];
+};
+
+
+function initGL(c) {
+	gl = c.getContext("webgl")|| c.getContext("experimental-webgl");
 	if (!gl) return alert("지원안되는 브라우저라능 !");
-	gl.viewportWidth = canvas.width, 
-	gl.viewportHeight = canvas.height;
+	gl.w = c.width, gl.h = c.height;
 }
 
 function getShader(gl, id) {
@@ -22,7 +77,7 @@ function getShader(gl, id) {
 			"uniform mat4 uPMatrix;",
 			"varying lowp vec4 vColor;",
 			"void main(void) {",
-				"gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);",
+				"gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 2.0);",
 				"vColor = aVertexColor;",
 			"}"
 		].join("\n")
@@ -128,10 +183,10 @@ function initBuffers() {
 
 var time = 0;
 function drawScene() {
-	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+	gl.viewport(0, 0, gl.w, gl.h);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	
-	mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+	mat4.perspective(45, gl.w / gl.h, 0.1, 100.0, pMatrix);
 
 	// MBO 초기화 
 	mat4.identity(mvMatrix);
@@ -155,14 +210,23 @@ function drawScene() {
 }
 
 function glStart() {
-	var canvas=document.getElementById("glcanvas");
-	initGL(canvas);
+	var el = document.createElement("p");
+	el.appendChild(document.createTextNode("WebGL 로 사각형그리고 쉐이더로 칠해보기"));
+	document.body.appendChild(el);
+
+	el = document.createElement("canvas");
+	el.setAttribute("width", 800);
+	el.setAttribute("height", 600);
+	document.body.appendChild(el);
+
+	initGL(el);
 	initShaders();
 	initBuffers();
 
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
-
 	gl.enable(gl.DEPTH_TEST);
+
 	setInterval(drawScene, 16);
 }
 
+window.onload = glStart;
