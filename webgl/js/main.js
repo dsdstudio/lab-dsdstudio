@@ -2,14 +2,12 @@
  * */
 var Camera, Stage, Display, Shape, Rect, fn;
 
-Display = function(){};
-Display.prototype = {
-	render : function(gl) {
-		this._render(gl);
-	},
-	_render : null
-};
-
+Display = function(){},
+fn = Display.prototype,
+fn.render = function(gl) {
+	this._render(gl);
+},
+fn._render = null;
 Camera = function Camera() { };
 Stage = function Stage () { 
 	var el = document.createElement("canvas");
@@ -23,7 +21,7 @@ Stage = function Stage () {
 	this.viewRate = this.width / this.height;
 
 	this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-	this.gl.enable(gl.DEPTH_TEST);
+	this.gl.enable(this.gl.DEPTH_TEST);
 
 	this.perspective = mat4.create();
 	mat4.perspective( 45, this.viewRate, 0.1, 100.0, this.perspective);
@@ -39,22 +37,123 @@ fn._render = function() {
 	for ( i = 0, j = this.children.length; i < j ; i++ ) {
 		this.children[i].render(gl);
 	}
-};
-fn.shader = function (key, strShader){
+},
+fn.shader = function (key, shaderKey){
 	var gl, shader;
-	var shaderConstant = { "fragment":gl.FRAGMENT_SHADER, "vertex":gl.VERTEX_SHADER }[key];
-	if (strShader) {
+	if (shaderKey) {
 		gl = this.gl;
+		var shaderConstant = { "fragment":gl.FRAGMENT_SHADER, "vertex":gl.VERTEX_SHADER }[shaderKey];
+		var shaderStr = {
+			"fragment":[
+				"precision mediump float;",
+				"void main(void) {",
+					"gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);",
+				"}"
+			].join("\n"),
+			"vertex":[
+				"attribute vec3 aVertexPosition;",
+				"uniform mat4 uMVMatrix;",
+				"uniform mat4 uPMatrix;",
+				"void main(void) {",
+					"gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);",
+				"}"
+			].join("\n")
+		}[shaderKey];
 		shader = gl.createShader(shaderConstant);
 
 		gl.shaderSource(shader, shaderStr);
 		gl.compileShader(shader);
+
 		this.shaders[key] = shader;
 	}
 	return this.shaders[key];
-};
+},
+fn.program = function() {
+	var gl = this.gl, shaders = this.shaders, program, i, j;
+	program = gl.createProgram();
+	console.log("프로그램 만들기")
+	for( i = 0, j = arguments.length ; i < j ; i++ ) {
+		gl.attachShader( program, shaders[arguments[i]] );
+	}
+	console.log("쉐이더 어태칭")
 
+	gl.linkProgram(program);
 
+	gl.useProgram(program);
+	console.log("링크 & 이 프로그램 쓸거라고 알려주기")
+	program.position = gl.getAttribLocation(program, "aVertexPosition") 
+	gl.enableVertexAttribArray(program.position );
+	console.log("지퓨한테 버텍스 정보 알려줌");
+
+	program.perspective = gl.getUniformLocation(program, "uPMatrix");
+	program.translate = gl.getUniformLocation(program, "uMVMatrix");
+	return program;
+},
+fn.initBuffer = function(verticies) {
+	var gl, buffer;
+	gl = this.gl;
+	buffer = gl.createBuffer();
+	console.log("GPU 버퍼 만들기")
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verticies), gl.STATIC_DRAW);
+	console.log("GPU 버퍼타입 알려주고 버퍼 데이터 밀어넣기")
+	buffer.size = 3;
+	buffer.num = verticies.length / buffer.size;
+	return buffer;
+},
+fn.setPerspective = function(program) {
+	this.gl.uniformMatrix4fv(program.perspective, false, this.perspective);
+},
+fn.setTranslate = function(program, translate) {
+	this.gl.uniformMatrix4fv(program.translate, false, translate);
+},
+
+Shape = function() {
+	this.x = this.y = this.z = 0;
+	this.translate = mat4.create();
+},
+fn = Shape.prototype = new Display();
+fn.program = function(program) {
+	this.program = program;
+},
+fn._render = function(gl) {
+	gl.viewport(0, 0, gl.w, gl.h);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+	mat4.perspective( 45, this.viewRate, 0.1, 100.0, this.perspective);
+
+	mat4.identity( this.translate );
+	mat4.translate( this.translate, [this.x , this.y, this.z] );
+	gl.bindBuffer( gl.ARRAY_BUFFER, this.buffer );
+	gl.vertexAttribPointer( this.program.position, this.buffer.size, gl.FLOAT, 	false, 0, 0 );
+	this.parent.setPerspective( this.program );
+	this.parent.setTranslate( this.program , this.translate);
+	gl.drawArrays( gl.TRIANGLES, 0, this.buffer.num );
+	console.log("_rendeR", this.program.position, this.buffer.num, this.buffer.size)
+},
+Tri = function(stage) {
+	Shape.call(this);
+	this.parent = stage;
+	this.buffer = stage.initBuffer( [
+		 0.0,  1.0, 0.0,
+		-1.0, -1.0, 0.0,
+		 1.0, -1.0, 0.0
+	]);
+	this.parent.children.push(this);
+},
+fn = Tri.prototype = new Shape(),
+Rect = function(stage) {
+	Shape.call(this);
+	this.parent = stage;
+	this.buffer = stage.initBuffer( [
+		 0.0,  1.0, 0.0,
+		-1.0, -1.0, 0.0,
+		 1.0, -1.0, 0.0,
+		-1.0, -1.0, 0.0
+	]);
+	this.parent.children.push(this);
+},
+fn = Rect.prototype = new Shape();
 function initGL(c) {
 	gl = c.getContext("webgl")|| c.getContext("experimental-webgl");
 	if (!gl) return alert("지원안되는 브라우저라능 !");
@@ -220,8 +319,8 @@ function glStart() {
 	document.body.appendChild(el);
 
 	initGL(el);
-	initShaders();
 	initBuffers();
+	initShaders();
 
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 	gl.enable(gl.DEPTH_TEST);
@@ -229,4 +328,16 @@ function glStart() {
 	setInterval(drawScene, 16);
 }
 
-window.onload = glStart;
+window.onload = function() {
+	var stage, rect;
+	stage = new Stage();
+	stage.shader( 'v0', "vertex");
+	stage.shader( 'f0', "fragment");
+
+	rect = new Rect(stage);
+	rect.program( stage.program("v0", "f0") );
+
+	stage.render();
+};
+
+// window.onload = glStart;
