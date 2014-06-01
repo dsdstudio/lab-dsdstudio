@@ -71,32 +71,26 @@ fn.shader = function (key, shaderKey){
 fn.program = function() {
 	var gl = this.gl, shaders = this.shaders, program, i, j;
 	program = gl.createProgram();
-	console.log("프로그램 만들기")
 	for( i = 0, j = arguments.length ; i < j ; i++ ) {
 		gl.attachShader( program, shaders[arguments[i]] );
 	}
-	console.log("쉐이더 어태칭")
-
 	gl.linkProgram(program);
 
 	gl.useProgram(program);
-	console.log("링크 & 이 프로그램 쓸거라고 알려주기")
 	program.position = gl.getAttribLocation(program, "aVertexPosition") 
 	gl.enableVertexAttribArray(program.position );
-	console.log("지퓨한테 버텍스 정보 알려줌");
 
 	program.perspective = gl.getUniformLocation(program, "uPMatrix");
 	program.translate = gl.getUniformLocation(program, "uMVMatrix");
 	return program;
 },
+// TODO 삼각형이 아닌경우에 indexBufferObject 도 초기화 해줘야된다. 
 fn.initBuffer = function(verticies) {
 	var gl, buffer;
 	gl = this.gl;
 	buffer = gl.createBuffer();
-	console.log("GPU 버퍼 만들기")
 	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verticies), gl.STATIC_DRAW);
-	console.log("GPU 버퍼타입 알려주고 버퍼 데이터 밀어넣기")
 	buffer.size = 3;
 	buffer.num = verticies.length / buffer.size;
 	return buffer;
@@ -128,8 +122,7 @@ fn._render = function(gl) {
 	gl.vertexAttribPointer( this.program.position, this.buffer.size, gl.FLOAT, 	false, 0, 0 );
 	this.parent.setPerspective( this.program );
 	this.parent.setTranslate( this.program , this.translate);
-	gl.drawArrays( gl.TRIANGLES, 0, this.buffer.num );
-	console.log("_rendeR", this.program.position, this.buffer.num, this.buffer.size)
+	gl.drawArrays( gl.TRIANGLE_STRIP, 0, this.buffer.num );
 },
 Tri = function(stage) {
 	Shape.call(this);
@@ -144,6 +137,9 @@ Tri = function(stage) {
 fn = Tri.prototype = new Shape(),
 Rect = function(stage) {
 	Shape.call(this);
+	//  x,y,z 는 행렬 변환 -> 투영시에 사용되는데 z값이 0보다 크면 아예 안보이게 된다. 
+	//  적절한 값을 설정 했음.
+	this.z = -10;
 	this.parent = stage;
 	this.buffer = stage.initBuffer( [
 		 0.0,  1.0, 0.0,
