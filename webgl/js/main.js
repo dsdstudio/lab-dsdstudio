@@ -136,12 +136,10 @@
 	fn = Tri.prototype = new Shape(),
 	Rect = function(stage) {
 		Shape.call(this);
-		// translateZ => -10
-		this.z = -10;
 		this.parent = stage;
 		this.buffer = stage.initBuffer( [
-			 0.0,  1.0, 0.0,
-			-1.0, -1.0, 0.0,
+			 1.0,  1.0, 0.0,
+			-1.0, 1.0, 0.0,
 			 1.0, -1.0, 0.0,
 			-1.0, -1.0, 0.0
 		]);
@@ -157,6 +155,7 @@
 
 		rect = new Rect(stage);
 		rect.program( stage.program("v0", "f0") );
+		rect.z = -7;
 
 		stage.render();
 	};
