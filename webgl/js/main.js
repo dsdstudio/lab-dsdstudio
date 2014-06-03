@@ -45,17 +45,20 @@
 			var shaderConstant = { "fragment":gl.FRAGMENT_SHADER, "vertex":gl.VERTEX_SHADER }[shaderKey];
 			var shaderStr = {
 				"fragment":[
-					"precision mediump float;",
+					"varying lowp vec4 vColor;",
 					"void main(void) {",
-						"gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);",
+						"gl_FragColor = vColor;",
 					"}"
 				].join("\n"),
 				"vertex":[
 					"attribute vec3 aVertexPosition;",
+					"attribute vec4 aVertexColor;",
 					"uniform mat4 uMVMatrix;",
 					"uniform mat4 uPMatrix;",
+					"varying lowp vec4 vColor;",
 					"void main(void) {",
 						"gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);",
+						"vColor = aVertexColor;",
 					"}"
 				].join("\n")
 			}[shaderKey];
@@ -77,8 +80,11 @@
 		gl.linkProgram(program);
 
 		gl.useProgram(program);
-		program.position = gl.getAttribLocation(program, "aVertexPosition") 
-		gl.enableVertexAttribArray(program.position );
+		program.position = gl.getAttribLocation(program, "aVertexPosition");
+		gl.enableVertexAttribArray(program.position);
+
+		program.color = gl.getAttribLocation(program, "aVertexColor");
+		gl.enableVertexAttribArray(program.color);
 
 		program.perspective = gl.getUniformLocation(program, "uPMatrix");
 		program.translate = gl.getUniformLocation(program, "uMVMatrix");
@@ -119,6 +125,10 @@
 		mat4.translate( this.translate, [this.x , this.y, this.z] );
 		gl.bindBuffer( gl.ARRAY_BUFFER, this.buffer );
 		gl.vertexAttribPointer( this.program.position, this.buffer.size, gl.FLOAT, 	false, 0, 0 );
+
+		gl.bindBuffer( gl.ARRAY_BUFFER, this.colorBuffer);
+		gl.vertexAttribPointer( this.program.color, 4, gl.FLOAT, false, 0, 0);
+
 		this.parent.setPerspective( this.program );
 		this.parent.setTranslate( this.program , this.translate);
 		gl.drawArrays( gl.TRIANGLE_STRIP, 0, this.buffer.num );
@@ -142,6 +152,12 @@
 			-1.0, 1.0, 0.0,
 			 1.0, -1.0, 0.0,
 			-1.0, -1.0, 0.0
+		]);
+		this.colorBuffer = stage.initBuffer ( [
+			1.0, 1.0, 1.0, 1.0, 
+			1.0, 0.0, 0.0, 1.0, // r
+			0.0, 1.0, 0.0, 1.0, // g
+			0.0, 0.0, 1.0, 1.0  // b
 		]);
 		this.parent.children.push(this);
 	},
