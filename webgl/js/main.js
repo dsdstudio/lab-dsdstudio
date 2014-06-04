@@ -1,14 +1,13 @@
 (function(W) {
 	W = W || window;
 
-	var Camera, Stage, Display, Shape, Rect, fn;
+	var Stage, Display, Shape, Rect, fn, time;
 	Display = function(){},
 	fn = Display.prototype,
 	fn.render = function(gl) {
 		this._render(gl);
 	},
-	fn._render = null;
-	Camera = function Camera() { };
+	fn._render = null,
 	Stage = function Stage () { 
 		var el = document.createElement("canvas");
 		el.setAttribute("width", 800);
@@ -115,14 +114,22 @@
 	fn.program = function(program) {
 		this.program = program;
 	},
+	time = 0,
 	fn._render = function(gl) {
 		gl.viewport(0, 0, gl.w, gl.h);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 		mat4.perspective( 45, this.viewRate, 0.1, 100.0, this.perspective);
 
+		time += 0.01;
+
 		mat4.identity( this.translate );
 		mat4.translate( this.translate, [this.x , this.y, this.z] );
+
+		mat4.rotateX( this.translate , time );
+		mat4.rotateY( this.translate , time );
+		mat4.rotateZ( this.translate , time );
+
 		gl.bindBuffer( gl.ARRAY_BUFFER, this.buffer );
 		gl.vertexAttribPointer( this.program.position, this.buffer.size, gl.FLOAT, 	false, 0, 0 );
 
@@ -131,7 +138,18 @@
 
 		this.parent.setPerspective( this.program );
 		this.parent.setTranslate( this.program , this.translate);
+
 		gl.drawArrays( gl.TRIANGLE_STRIP, 0, this.buffer.num );
+
+		for(var i=0;i<1000;i++) {
+			mat4.identity(this.translate);
+			mat4.translate(this.translate, [Math.sin(time+i)*5, Math.cos(time+i)*5, -10 - i]);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+			gl.vertexAttribPointer(this.program.position, this.buffer.size, gl.FLOAT, false, 0, 0);
+			this.parent.setPerspective( this.program );
+			this.parent.setTranslate( this.program , this.translate);
+			gl.drawArrays( gl.TRIANGLE_STRIP, 0, this.buffer.num);
+		}
 	},
 	Tri = function(stage) {
 		Shape.call(this);
@@ -164,15 +182,17 @@
 	fn = Rect.prototype = new Shape();
 
 	W.onload = function() {
-		var stage, rect;
+		var stage, tri;
 		stage = new Stage();
 		stage.shader( 'v0', "vertex");
 		stage.shader( 'f0', "fragment");
 
 		rect = new Rect(stage);
 		rect.program( stage.program("v0", "f0") );
-		rect.z = -7;
+		rect.z = -20;
 
-		stage.render();
+		setInterval(function() {
+			stage.render();
+		}, 16);
 	};
 })(this);
