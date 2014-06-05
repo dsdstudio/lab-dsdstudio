@@ -37,11 +37,12 @@
 			this.children[i].render(gl);
 		}
 	},
-	fn.shader = function (key, shaderKey){
+	fn.shader = function (key, shaderKey) {
 		var gl, shader;
 		if (shaderKey) {
 			gl = this.gl;
 			var shaderConstant = { "fragment":gl.FRAGMENT_SHADER, "vertex":gl.VERTEX_SHADER }[shaderKey];
+			// shader 코드. 여기에 바인딩해놓은 변수를 이곳 저곳에서 쓰는데 깔끔하게 정리할 방법이 필요 ;ㅅ;
 			var shaderStr = {
 				"fragment":[
 					"varying lowp vec4 vColor;",
@@ -115,6 +116,7 @@
 		this.program = program;
 	},
 	time = 0,
+	// 트위닝을 걸려면 변하는 값들을 밖에서 해줘야할것 같은데. 
 	fn._render = function(gl) {
 		gl.viewport(0, 0, gl.w, gl.h);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
