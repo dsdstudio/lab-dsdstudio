@@ -128,9 +128,9 @@
 		mat4.identity( this.translate );
 		mat4.translate( this.translate, [this.x , this.y, this.z] );
 
-		mat4.rotateX( this.translate , time );
-		mat4.rotateY( this.translate , time );
-		mat4.rotateZ( this.translate , time );
+		mat4.rotateX( this.translate, time );
+		mat4.rotateY( this.translate, time );
+		mat4.rotateZ( this.translate, time );
 
 		gl.bindBuffer( gl.ARRAY_BUFFER, this.buffer );
 		gl.vertexAttribPointer( this.program.position, this.buffer.size, gl.FLOAT, 	false, 0, 0 );

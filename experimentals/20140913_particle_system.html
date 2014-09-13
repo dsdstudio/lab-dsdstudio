@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<meta charset="utf-8">
+<title>Particle System</title>
+<style>
+canvas {
+  background-color:#000;
+}
+</style>
+</head>
+<body>
+<script>
+var Particle, c, fn;
+$("<canvas />").attr({
+  width:$(document).width(),
+  height:$(document).height()
+})
+.appendTo("body"); 
+
+c = $("canvas").get(0).getContext("2d");
+var util = {
+  toRad:function(angle) { return angle * Math.PI / 180; },
+  rand:function (min,max) { return min + (Math.random() * (max - min)); }
+}; 
+var w = $(document).width(), h = $(document).height();
+var Particle = function(x,y,speed,angle,life){
+  this.pos = {x:x, y:y};
+  this.speed = speed;
+  this.velocity = {
+    x: speed * Math.cos(util.toRad(angle)), 
+    y: -speed * Math.sin(util.toRad(angle))
+  };
+  this.life = life || 100;
+};
+
+(fn = Particle.prototype);
+fn.update = function () { this.life--; };
+fn.isDead = function () {  return this.life <= 0; };
+
+var particlePool = [];
+function render(p, c, dt) {
+  p.pos.x += p.velocity.x * dt; 
+  p.pos.y += p.velocity.y * dt;  
+  c.fillStyle = "rgba(255, 255, 255, 0.8)"; 
+  c.fillRect(p.pos.x, p.pos.y, 3, 3);
+}
+
+// speed 값 
+var delta = 5;
+function loop() {
+  var i = 100;
+  while(i--) {
+    particlePool.push(new Particle(util.rand(0, w), util.rand(0,h), 1, util.rand(270,320), 100));
+  }
+  c.clearRect(0, 0,w,h);  
+  i = particlePool.length;
+  while (i--) {                     
+    if (particlePool[i] &&  particlePool[i].isDead()) {
+      particlePool.splice(i, 1); 
+      continue; 
+    }
+    render(particlePool[i], c, delta); 
+    particlePool[i].update(); 
+  }
+}
+
+setInterval(loop, 16.6);
+</script>
+</body>
+</html>

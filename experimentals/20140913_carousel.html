@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="//code.jquery.com/jquery.min.js"></script>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<meta charset="utf-8">
+<title>carousel 테스트</title>
+<style>
+.wrap { width:300px; height:300px; overflow:hidden; margin:0 auto;}
+.wrap > div.paging-wrap { width:900px;height:300px; }
+.wrap > div.paging-wrap > .page { 
+	width:300px; height:300px;float:left;display:inline-block;
+}
+.cyan { background-color:#00bcd4; }
+.purple { background-color:#9c27b0; }
+.pink { background-color:#e91e63; }
+.green { background-color:#259b24; }
+.orange { background-color:#ff9800; }
+.grey { background-color:#bdbdbd;}
+.lightblue { background-color:#03a9f4;}
+.indigo { background-color:#3f51b5; }
+.yellow { background-color: #fbc02d; }
+
+.centerize {margin-top:20px;text-align:center; }
+</style>
+</head>
+<body>
+	<div class="wrap">
+		<div class="paging-wrap">
+			<div class="page purple"></div>
+			<div class="page pink"></div>
+			<div class="page orange"></div>
+		</div>
+	</div>
+	<div class="centerize">
+		<button class="btn btn-default btn-sm prev">
+			<i class="fa  fa-2x fa-angle-left"></i>
+		</button>
+		
+		<button class="btn btn-default btn-sm next">
+			<i class="fa  fa-2x fa-angle-right"></i>
+		</button>
+		
+	</div>
+<script>
+$(function() {
+	var pagingTarget = $(".paging-wrap");
+	var current = 0;
+	$(".prev").click(function() {
+		if ( current <= -600) return;
+		pagingTarget.animate({
+			"margin-left":(current -= 300) + "px"
+		}, 350, function() {}); 
+	});
+	$(".next").click(function() {
+		if ( current >= 0 ) return;
+		pagingTarget.animate({
+			"margin-left":(current += 300) + "px"
+		}, 350, function() {}); 
+	});
+});
+</script>
+</body>
+</html>
