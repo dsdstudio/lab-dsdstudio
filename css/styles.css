@@ -2,7 +2,7 @@
 
 body {
   padding:50px;
-  font:14px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Noto Sans Korean', sans-serif;
   color:#777;
   font-weight:300;
 }
@@ -219,3 +219,34 @@ ul.experimentals {
 	margin:0;
 	-webkit-padding-start:0px;
 }
+ul.experimentals li a {
+	color:#9a9a9a;
+	font-size:12px;
+	font-weight:300;
+	padding:5px;
+}
+ul.experimentals li a:hover {
+	background-color:#e61e63;
+	color:#fff;
+}
+ul.experimentals li {
+	line-height:34px;
+	border-top:1px solid #f4f4f4;
+}
+ul.experimentals li:first-child {
+	border-top:none;
+}
+h4 {
+	border-bottom:2px solid #e61e63;
+	margin-top:25px;
+	font-weight:500;
+	padding:10px 0px;
+}
+
+a.logo {
+	font-size:28px;
+	font-weight:500;
+	color:#e61e63;
+	letter-spacing:-3px;
+}
+a.logo:hover { }
