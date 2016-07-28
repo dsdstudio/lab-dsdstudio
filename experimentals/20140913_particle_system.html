@@ -5,12 +5,32 @@
 <meta charset="utf-8">
 <title>Particle System</title>
 <style>
+body {
+    padding:0;
+    margin:0;
+    font-size:12px;
+}
 canvas {
   background-color:#000;
+}
+.control {
+	background-color:#fff;
+	position:absolute;
+    top:0;
+    left:0;
+    padding:10px;
 }
 </style>
 </head>
 <body>
+    <div class="control">
+        <div class="delta-control">
+            <span>delta</span><input type="range" value="1" id="delta-input" step="1" min="1" max="10"/> <span class="count">1</span>
+        </div>
+        <div class="speed-control">
+            <span>speed</span><input type="range" value="0.1" step="0.1" min="0.1" max="1"/> <span class="count">0.1</span>
+        </div>
+    </div>
 <script>
 var Particle, c, fn;
 $("<canvas />").attr({
@@ -18,6 +38,16 @@ $("<canvas />").attr({
   height:$(document).height()
 })
 .appendTo("body"); 
+
+$('.delta-control input').on('change', function(e) {
+    delta = $(this).val();
+    $('.delta-control .count').text(delta);
+});
+$('.speed-control input').on('change', function(e) {
+    speed = $(this).val();
+    $('.speed-control .count').text(delta);
+});
+
 
 c = $("canvas").get(0).getContext("2d");
 var util = {
@@ -29,7 +59,7 @@ var Particle = function(x,y,speed,angle,life){
   this.pos = {x:x, y:y};
   this.speed = speed;
   this.velocity = {
-    x: speed * Math.cos(util.toRad(angle)), 
+    x: speed * Math.cos(util.toRad(angle)),
     y: -speed * Math.sin(util.toRad(angle))
   };
   this.life = life || 100;
@@ -44,15 +74,17 @@ function render(p, c, dt) {
   p.pos.x += p.velocity.x * dt; 
   p.pos.y += p.velocity.y * dt;  
   c.fillStyle = "rgba(255, 255, 255, 0.8)"; 
-  c.fillRect(p.pos.x, p.pos.y, 3, 3);
+  c.fillRect(p.pos.x, p.pos.y, 1, 1);
 }
 
 // speed 값 
-var delta = 5;
+var delta = 1;
+var particleCount = 20;
+var speed = 0.1;
 function loop() {
-  var i = 100;
+  var i = particleCount;
   while(i--) {
-    particlePool.push(new Particle(util.rand(0, w), util.rand(0,h), 1, util.rand(270,320), 100));
+    particlePool.push(new Particle(util.rand(0, w), util.rand(0,h), speed, util.rand(270,320), 100));
   }
   c.clearRect(0, 0,w,h);  
   i = particlePool.length;
