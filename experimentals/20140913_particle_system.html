@@ -35,14 +35,18 @@
                 <input name="from" type="number" value="0" min="0" max="360"/>
                 <input name="to" type="number" value="360" min="0" max="360"/>
             </div>
+            <div class="life-control">
+                <span>life</span>
+                <input name="life" type="range" value="100" min="10", max="1000" step="10"/>
+                <span class="count">100</span>
+            </div>
         </div>
         <script>
         var Particle, c, fn;
         $("<canvas />").attr({
             width:$(document).width(),
             height:$(document).height()
-        })
-                       .appendTo("body"); 
+        }).appendTo("body"); 
 
         $('.delta-control input').on('change', function(e) {
             delta = $(this).val();
@@ -59,6 +63,10 @@
             if ( elName === 'from') angleFrom = el.val();
             else angleTo = el.val();
             console.log(elName, el.val());
+        });
+        $('.life-control input').on('change', function(e) {
+            life = $(this).val();
+            $('.life-control .count').text(life);
         });
 
 
@@ -99,13 +107,14 @@
         var speed = 0.1;
         var angleFrom = 0;
         var angleTo = 360;
+        var life = 100;
         function loop() {
             var i, particle;
             i = particleCount;
             while(i--) {
                 var style = "rgba(" + Math.round(util.rand(0,255)) + ", " + Math.round(util.rand(0,255)) + ", " + Math.round(util.rand(0,255)) + ", 0.8)";
 
-                particle = new Particle(util.rand(0, w), util.rand(0,h), speed, util.rand(angleFrom, angleTo), 100, style)
+                particle = new Particle(util.rand(0, w), util.rand(0,h), speed, util.rand(angleFrom, angleTo), life, style)
                 particlePool.push(particle);
             }
             c.clearRect(0, 0,w,h);  
