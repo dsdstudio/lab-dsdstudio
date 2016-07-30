@@ -40,6 +40,9 @@
                 <input name="life" type="range" value="100" min="10", max="1000" step="10"/>
                 <span class="count">100</span>
             </div>
+            <div class="particle-control">
+                <span>current particle Count : </span> <span class="count"></span>
+            </div>
         </div>
         <script>
         var Particle, c, fn;
@@ -68,6 +71,9 @@
             life = $(this).val();
             $('.life-control .count').text(life);
         });
+        var particleCountEl = $('.particle-control .count');
+
+        var numberFormat = new Intl.NumberFormat();
 
 
         c = $("canvas").get(0).getContext("2d");
@@ -127,9 +133,10 @@
                 render(particlePool[i], c, delta); 
                 particlePool[i].update(); 
             }
+            particleCountEl.text(numberFormat.format(particlePool.length));
+            requestAnimationFrame(loop);
         }
-
-        setInterval(loop, 16.6);
+        requestAnimationFrame(loop);
         </script>
     </body>
 </html>
