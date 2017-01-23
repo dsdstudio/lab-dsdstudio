@@ -218,6 +218,20 @@ ul.experimentals {
 	list-style:none;
 	margin:0;
 	-webkit-padding-start:0px;
+    overflow:auto;
+}
+ul.experimentals > li > div.img-wrap {
+    box-sizing: border-box;
+    height: 184px;
+    overflow: hidden;
+}
+ul.experimentals > li > div.img-wrap img {
+    width:100%;
+    border-radius:5px;
+}
+ul.experimentals > li > div.desc {
+    padding: 20px 5px 5px 5px;
+    position: relative;
 }
 ul.experimentals li a {
 	color:#9a9a9a;
@@ -230,11 +244,13 @@ ul.experimentals li a:hover {
 	color:#fff;
 }
 ul.experimentals li {
+    display:inline-block;
+    float:left;
+    width:40%;
+    margin:5px;
 	line-height:34px;
-	border-top:1px solid #f4f4f4;
-}
-ul.experimentals li:first-child {
-	border-top:none;
+    border-radius:5px;
+	border:1px solid #f4f4f4;
 }
 h4 {
 	border-bottom:2px solid #e61e63;
