@@ -9,6 +9,7 @@ let data = {
   strokes: {}
 }
 const normalize = (x) => x + 0.5
+const distance = (p1, p2) => Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2))
 
 canvas.addEventListener('mousedown', ({clientX, clientY}) => {
   let stroke = {color:'#fff', lineWidth: 1, points: [], start:null, end: null, id: Date.now()}
@@ -26,13 +27,13 @@ canvas.addEventListener('mousedown', ({clientX, clientY}) => {
     stroke.points.push(p)
     context.lineTo(normalize(p.x), normalize(p.y))
     context.stroke()
+    console.log('distance', distance(stroke.start, p))
   }
 
   const mouseUpHandler = ({clientX, clientY}) => {
     stroke.end = {x: clientX, y: clientY}
     canvas.removeEventListener('mousemove', mouseDownHandler)
     canvas.removeEventListener('mouseup', mouseUpHandler)
-    console.log(data)
   }
   canvas.addEventListener('mouseup', mouseUpHandler)
   canvas.addEventListener('mousemove', mouseDownHandler)
