@@ -18,11 +18,6 @@
     stream.onremovetrack = () => console.log('stream ended')
     window.stream = stream
     video.srcObject = stream
-
-    video.onloadedmetadata = (e) => {
-      log('video playing...')
-      video.play()
-    }
   }).catch(e => log(e))
   
   function log(s) {
