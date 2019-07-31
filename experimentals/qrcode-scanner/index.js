@@ -24,7 +24,10 @@
     window.stream = stream
     video.srcObject = stream
 
-    video.onloadedmetadata = (e) => video.play()
+    video.onloadedmetadata = (e) => {
+      log('video playing...')
+      video.play()
+    }
   }).catch(e => log(e))
   
   function log(s) {
