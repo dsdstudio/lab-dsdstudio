@@ -1,4 +1,11 @@
 (() => {
+  function log(s) {
+    errorEl.innerHTML = errorEl.innerHTML + `\n${s}`
+  }
+  function checkCameraSupport() {
+    if (navigator.mediaDevices) log('Media device supported')
+    else log('Media device not supported')
+  }
   const errorEl = document.querySelector('#error-msg')
   const deviceOpts = {
     audio:false,
@@ -9,15 +16,15 @@
       facingMode: { exact: 'environment' }
     }
   }
+
+    checkCameraSupport()
   navigator.mediaDevices.getUserMedia(deviceOpts).then(stream => {
-    errorEl.textContent = errorEl.textContent + '\nsuccess' 
+    log('success')
     const video = document.querySelector('video')
     const videoTracks = stream.getVideoTracks()
 
     stream.onremovetrack = () => console.log('stream ended')
     window.stream = stream
     video.srcObject = stream
-  }).catch(e => {
-    errorEl.textContent = errorEl.textContent + '\n' + e 
-  })
+  }).catch(e => log(e))
 })()
