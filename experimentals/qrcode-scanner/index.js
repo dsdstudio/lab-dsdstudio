@@ -3,6 +3,8 @@
   const deviceOpts = {
     audio:false,
     video: {
+      width: 1280,
+      height: 720,
       frameRate: { ideal: 10, max: 30 },
       facingMode: { exact: 'environment' }
     }
