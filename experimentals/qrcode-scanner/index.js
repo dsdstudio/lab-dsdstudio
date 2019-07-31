@@ -10,7 +10,7 @@
   }
 
   checkCameraSupport()
-  navigator.getUserMedia(deviceOpts).then(stream => {
+  navigator.mediaDevices.getUserMedia(deviceOpts).then(stream => {
     log('success')
     const video = document.querySelector('video')
     const videoTracks = stream.getVideoTracks()
