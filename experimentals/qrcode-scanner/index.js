@@ -12,5 +12,8 @@
     stream.onremovetrack = () => console.log('stream ended')
     window.stream = stream
     video.srcObject = stream
-  }).catch(e => console.error(e))
+  }).catch(e => {
+    console.error(e)
+    alert(e)
+  })
 })()
