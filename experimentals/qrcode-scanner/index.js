@@ -1,5 +1,4 @@
 (() => {
-  console.log(navigator.mediaDevices)
   const errorEl = document.querySelector('#error-msg')
   const video = document.querySelector('#video')
   const deviceOpts = {
