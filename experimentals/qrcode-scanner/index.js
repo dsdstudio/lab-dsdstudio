@@ -7,14 +7,13 @@
     video: {facingMode: {exact: 'environment' }}
   }
   navigator.mediaDevices.getUserMedia(deviceOpts).then(stream => {
-    alert('success')
+    errorEl.textContent = errorEl.textContent + '\nsuccess' 
     const videoTracks = stream.getVideoTracks()
 
     stream.onremovetrack = () => console.log('stream ended')
     window.stream = stream
     video.srcObject = stream
   }).catch(e => {
-    console.error(e)
-    alert(e)
+    errorEl.textContent = errorEl.textContent + '\n' + e 
   })
 })()
